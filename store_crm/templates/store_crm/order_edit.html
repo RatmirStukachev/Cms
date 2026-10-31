@@ -1,0 +1,33 @@
+{% extends 'store_crm/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Редактировать заказ #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col">
+        <h2>Редактировать заказ #{{ order.id }}</h2>
+        <p class="text-muted">Клиент: <a href="{% url 'customer_detail' order.customer.id %}">{{ order.customer.name }}</a></p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="id_product" class="form-label requiredField">Товар<span class="asteriskField">*</span></label>
+                        <input type="text" name="product" id="id_product" class="textinput form-control" value="{{ order.product }}" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary mt-3">Сохранить изменения</button>
+                    <a href="{% url 'order_list' %}" class="btn btn-outline-secondary mt-3 ms-2">Отмена</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

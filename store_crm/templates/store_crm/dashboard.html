@@ -1,0 +1,50 @@
+{% extends 'store_crm/base.html' %}
+
+{% block title %}Главная панель{% endblock %}
+
+{% block content %}
+<div class="row text-center mt-5">
+    <h1>Добро пожаловать в CRM систему</h1>
+    <p class="lead text-muted">Используйте навигацию сверху для управления заказами и клиентами.</p>
+
+    <div class="col-md-3 mt-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Новый заказ</h5>
+                <p class="card-text">Создайте новый заказ и профиль клиента.</p>
+                <a href="{% url 'order_create' %}" class="btn btn-primary">Добавить заказ</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mt-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Все заказы</h5>
+                <p class="card-text">Просмотр и фильтрация заказов.</p>
+                <a href="{% url 'order_list' %}" class="btn btn-secondary">Перейти к заказам</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mt-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Клиенты</h5>
+                <p class="card-text">Управление базой клиентов.</p>
+                <a href="{% url 'customer_list' %}" class="btn btn-info text-white">База клиентов</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mt-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Рассылка</h5>
+                <p class="card-text">Отправка сообщений клиентам.</p>
+                <a href="{% url 'broadcast' %}" class="btn btn-success">Сделать рассылку</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

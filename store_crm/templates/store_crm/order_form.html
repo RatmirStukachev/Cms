@@ -1,0 +1,107 @@
+{% extends 'store_crm/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col">
+        <h2>{{ title }}</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form method="post" id="orderForm">
+                    {% csrf_token %}
+
+                    <h5 class="mb-3 border-bottom pb-2">Информация о клиенте</h5>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.customer_name|as_crispy_field }}
+                            <div id="customerFoundAlert" class="alert alert-info py-1 mt-1 d-none" style="font-size: 0.85rem;">
+                                Клиент найден! Данные подтянуты.
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.customer_phone|as_crispy_field }}
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            {{ form.customer_email|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    <h6 class="mb-3 text-muted">Адрес доставки (необязательно)</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.customer_city|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.customer_district|as_crispy_field }}
+                        </div>
+                        <div class="col-md-8 mb-3">
+                            {{ form.customer_street|as_crispy_field }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form.customer_house|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    <h5 class="mb-3 mt-4 border-bottom pb-2">Информация о заказе</h5>
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            {{ form.product|as_crispy_field }}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary mt-3">Сохранить</button>
+                    <a href="{% url 'order_list' %}" class="btn btn-outline-secondary mt-3 ms-2">Отмена</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nameInput = document.getElementById('id_customer_name');
+    const alertBox = document.getElementById('customerFoundAlert');
+    let timeoutId;
+
+    nameInput.addEventListener('input', function() {
+        clearTimeout(timeoutId);
+        const name = this.value.trim();
+
+        if (name.length < 2) {
+            alertBox.classList.add('d-none');
+            return;
+        }
+
+        timeoutId = setTimeout(() => {
+            fetch(`/api/customer/?name=${encodeURIComponent(name)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.found) {
+                        // Подтягиваем данные, если они пустые или мы хотим перезаписать
+                        document.getElementById('id_customer_phone').value = data.phone;
+                        document.getElementById('id_customer_email').value = data.email;
+                        document.getElementById('id_customer_city').value = data.city;
+                        document.getElementById('id_customer_street').value = data.street;
+                        document.getElementById('id_customer_district').value = data.district;
+                        document.getElementById('id_customer_house').value = data.house;
+
+                        alertBox.classList.remove('d-none');
+                    } else {
+                        alertBox.classList.add('d-none');
+                    }
+                })
+                .catch(error => console.error('Error fetching customer:', error));
+        }, 500); // Ждем 500мс после ввода последнего символа
+    });
+});
+</script>
+{% endblock %}

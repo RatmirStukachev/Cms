@@ -1,0 +1,28 @@
+{% extends 'store_crm/base.html' %}
+
+{% block title %}Удаление заказа{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">Подтверждение удаления</h4>
+            </div>
+            <div class="card-body">
+                <p>Вы уверены, что хотите удалить этот заказ?</p>
+                <ul>
+                    <li><strong>ID:</strong> {{ order.id }}</li>
+                    <li><strong>Клиент:</strong> {{ order.customer.name }}</li>
+                    <li><strong>Товар:</strong> {{ order.product }}</li>
+                </ul>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Да, удалить</button>
+                    <a href="{% url 'order_list' %}" class="btn btn-outline-secondary ms-2">Отмена</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

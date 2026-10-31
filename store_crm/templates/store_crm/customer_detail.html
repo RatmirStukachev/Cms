@@ -1,0 +1,70 @@
+{% extends 'store_crm/base.html' %}
+
+{% block title %}Профиль: {{ customer.name }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col-md-8">
+        <h2>Профиль клиента: {{ customer.name }}</h2>
+    </div>
+    <div class="col-md-4 text-end">
+        <a href="{% url 'customer_edit' customer.id %}" class="btn btn-primary">Редактировать</a>
+        <a href="{% url 'customer_delete' customer.id %}" class="btn btn-danger">Удалить</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">Контактная информация</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Телефон:</strong> {{ customer.phone }}</p>
+                <p><strong>Email:</strong> {{ customer.email|default:"Не указан" }}</p>
+                <hr>
+                <h6>Адрес:</h6>
+                <p class="mb-1">Город: {{ customer.city|default:"-" }}</p>
+                <p class="mb-1">Район: {{ customer.district|default:"-" }}</p>
+                <p class="mb-1">Улица: {{ customer.street|default:"-" }}</p>
+                <p class="mb-1">Дом: {{ customer.house|default:"-" }}</p>
+                <hr>
+                <p class="text-muted small mb-0">Зарегистрирован: {{ customer.created_at|date:"d.m.Y" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">История заказов</h5>
+                <span class="badge bg-light text-dark">Всего: {{ customer.orders.count }}</span>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Дата</th>
+                            <th>Товар</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in customer.orders.all|dictsortreversed:"created_at" %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.created_at|date:"d.m.Y H:i" }}</td>
+                            <td>{{ order.product }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center py-3 text-muted">Заказов пока нет.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

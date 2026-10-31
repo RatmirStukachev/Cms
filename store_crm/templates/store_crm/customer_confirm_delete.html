@@ -1,0 +1,26 @@
+{% extends 'store_crm/base.html' %}
+
+{% block title %}Удаление клиента{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow border-danger">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">Внимание! Подтверждение удаления</h4>
+            </div>
+            <div class="card-body">
+                <p>Вы уверены, что хотите удалить клиента <strong>{{ customer.name }}</strong>?</p>
+                <div class="alert alert-warning">
+                    <strong>Важно:</strong> Вместе с клиентом будут удалены все его заказы ({{ customer.orders.count }} шт.)! Это действие нельзя отменить.
+                </div>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Да, удалить клиента и его заказы</button>
+                    <a href="{% url 'customer_list' %}" class="btn btn-outline-secondary ms-2">Отмена</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
