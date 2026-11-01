@@ -177,3 +177,49 @@ def api_get_customer(request):
         except Customer.DoesNotExist:
             pass
     return JsonResponse({'found': False})
+
+from .models import Product
+from .forms import ProductForm
+
+@login_required
+def product_list(request):
+    query = request.GET.get('q', '')
+    if query:
+        products = Product.objects.filter(name__icontains=query).order_by('-created_at')
+    else:
+        products = Product.objects.all().order_by('-created_at')
+    return render(request, 'store_crm/product_list.html', {'products': products, 'query': query})
+
+@login_required
+def product_create(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Товар успешно добавлен.')
+            return redirect('product_list')
+    else:
+        form = ProductForm()
+    return render(request, 'store_crm/product_form.html', {'form': form, 'title': 'Добавить товар'})
+
+@login_required
+def product_edit(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        form = ProductForm(request.POST, instance=product)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Товар успешно обновлен.')
+            return redirect('product_list')
+    else:
+        form = ProductForm(instance=product)
+    return render(request, 'store_crm/product_form.html', {'form': form, 'title': 'Редактировать товар', 'product': product})
+
+@login_required
+def product_delete(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    if request.method == 'POST':
+        product.delete()
+        messages.success(request, 'Товар удален.')
+        return redirect('product_list')
+    return render(request, 'store_crm/product_confirm_delete.html', {'product': product})

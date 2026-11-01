@@ -29,3 +29,10 @@ class CustomerForm(forms.ModelForm):
 class BroadcastForm(forms.Form):
     subject = forms.CharField(max_length=255, label="Тема письма", required=True)
     message = forms.CharField(widget=forms.Textarea, label="Сообщение", required=True)
+
+from .models import Product
+
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = ['name', 'rrp', 'quantity']
