@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage
 from .models import Customer, Order
 from .forms import OrderForm, CustomerForm, BroadcastForm
 
@@ -141,14 +141,14 @@ def broadcast(request):
             emails = [c.email for c in selected_customers if c.email]
 
             if emails:
-                send_mail(
+                email = EmailMessage(
                     subject,
                     message,
                     'from@example.com', # Заменить на реальный отправитель
-                    [],
-                    fail_silently=False,
-                    bcc=emails
+                    [], # кому (пусто, чтобы не видели друг друга)
+                    bcc=emails, # скрытая копия
                 )
+                email.send(fail_silently=False)
                 messages.success(request, f'Письма успешно отправлены ({len(emails)} шт.)!')
             else:
                 messages.warning(request, 'Не выбрано ни одного клиента с валидным email.')
