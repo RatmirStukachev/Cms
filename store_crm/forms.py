@@ -13,7 +13,7 @@ class OrderForm(forms.ModelForm):
 
     class Meta:
         model = Order
-        fields = ['product']
+        fields = ['total_cost']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -36,3 +36,19 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = ['name', 'rrp', 'quantity']
+
+from django.forms import inlineformset_factory
+from .models import OrderItem
+
+class OrderItemForm(forms.ModelForm):
+    class Meta:
+        model = OrderItem
+        fields = ['name']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Название товара'})
+        }
+
+OrderItemFormSet = inlineformset_factory(
+    Order, OrderItem, form=OrderItemForm,
+    extra=1, can_delete=True
+)

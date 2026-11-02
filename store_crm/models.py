@@ -16,11 +16,11 @@ class Customer(models.Model):
 
 class Order(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='orders', verbose_name="Клиент")
-    product = models.CharField(max_length=255, verbose_name="Товар")
+    total_cost = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Общая стоимость", default=0)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 
     def __str__(self):
-        return f"Заказ: {self.product} ({self.customer.name})"
+        return f"Заказ #{self.pk} ({self.customer.name})"
 
 class Product(models.Model):
     name = models.CharField(max_length=255, verbose_name="Название товара")
@@ -28,6 +28,13 @@ class Product(models.Model):
     quantity = models.IntegerField(default=0, verbose_name="Количество")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items', verbose_name="Заказ")
+    name = models.CharField(max_length=255, verbose_name="Название товара")
 
     def __str__(self):
         return self.name

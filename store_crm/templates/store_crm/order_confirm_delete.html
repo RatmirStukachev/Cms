@@ -14,7 +14,7 @@
                 <ul>
                     <li><strong>ID:</strong> {{ order.id }}</li>
                     <li><strong>Клиент:</strong> {{ order.customer.name }}</li>
-                    <li><strong>Товар:</strong> {{ order.product }}</li>
+                    <li><strong>Товары:</strong> {% for item in order.items.all %}{{ item.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</li>
                 </ul>
                 <form method="post">
                     {% csrf_token %}

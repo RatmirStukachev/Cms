@@ -1,92 +1,85 @@
 {% extends 'store_crm/base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}{{ title }}{% endblock %}
-
 {% block content %}
-<div class="row mb-3">
-    <div class="col">
-        <h2>{{ title }}</h2>
-    </div>
-</div>
-
-<div class="row">
+<div class="row justify-content-center">
     <div class="col-md-8">
-        <div class="card shadow-sm mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white">
+                <h4 class="mb-0">{{ title }}</h4>
+            </div>
             <div class="card-body">
-                <form method="post" id="orderForm">
+                <form method="post" id="order-form">
                     {% csrf_token %}
 
-                    <h5 class="mb-3 border-bottom pb-2">Информация о клиенте</h5>
+                    <h5 class="mb-3 border-bottom pb-2">Данные клиента</h5>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            {{ form.customer_name|as_crispy_field }}
-                            <div id="customerFoundAlert" class="alert alert-info py-1 mt-1 d-none" style="font-size: 0.85rem;">
-                                Клиент найден! Данные подтянуты.
+                        <div class="col-md-6">{{ form.customer_name|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.customer_phone|as_crispy_field }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">{{ form.customer_email|as_crispy_field }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">{{ form.customer_city|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.customer_district|as_crispy_field }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8">{{ form.customer_street|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.customer_house|as_crispy_field }}</div>
+                    </div>
+
+                    <h5 class="mb-3 mt-4 border-bottom pb-2">Товары</h5>
+                    {{ formset.management_form }}
+                    <div id="formset-container">
+                        {% for item_form in formset %}
+                            <div class="formset-row mb-3 d-flex align-items-center">
+                                <div class="flex-grow-1 me-2">
+                                    {{ item_form.name|as_crispy_field }}
+                                </div>
+                                {% if formset.can_delete %}
+                                    <div class="mt-3">
+                                        {{ item_form.DELETE|as_crispy_field }}
+                                    </div>
+                                {% endif %}
+                                {% for hidden in item_form.hidden_fields %}
+                                    {{ hidden }}
+                                {% endfor %}
                             </div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            {{ form.customer_phone|as_crispy_field }}
-                        </div>
-                        <div class="col-md-12 mb-3">
-                            {{ form.customer_email|as_crispy_field }}
-                        </div>
+                        {% endfor %}
                     </div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm mb-4" id="add-form">
+                        + Добавить товар
+                    </button>
 
-                    <h6 class="mb-3 text-muted">Адрес доставки (необязательно)</h6>
+                    <h5 class="mb-3 border-bottom pb-2">Итог</h5>
                     <div class="row">
-                        <div class="col-md-6 mb-3">
-                            {{ form.customer_city|as_crispy_field }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            {{ form.customer_district|as_crispy_field }}
-                        </div>
-                        <div class="col-md-8 mb-3">
-                            {{ form.customer_street|as_crispy_field }}
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            {{ form.customer_house|as_crispy_field }}
+                        <div class="col-md-6">
+                            {{ form.total_cost|as_crispy_field }}
                         </div>
                     </div>
 
-                    <h5 class="mb-3 mt-4 border-bottom pb-2">Информация о заказе</h5>
-                    <div class="row">
-                        <div class="col-md-12 mb-3">
-                            {{ form.product|as_crispy_field }}
-                        </div>
+                    <div class="mt-4 d-flex justify-content-between">
+                        <a href="{% url 'order_list' %}" class="btn btn-secondary">Отмена</a>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
                     </div>
-
-                    <button type="submit" class="btn btn-primary mt-3">Сохранить</button>
-                    <a href="{% url 'order_list' %}" class="btn btn-outline-secondary mt-3 ms-2">Отмена</a>
                 </form>
             </div>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const nameInput = document.getElementById('id_customer_name');
-    const alertBox = document.getElementById('customerFoundAlert');
-    let timeoutId;
+    const nameField = document.getElementById('id_customer_name');
 
-    nameInput.addEventListener('input', function() {
-        clearTimeout(timeoutId);
+    nameField.addEventListener('blur', function() {
         const name = this.value.trim();
-
-        if (name.length < 2) {
-            alertBox.classList.add('d-none');
-            return;
-        }
-
-        timeoutId = setTimeout(() => {
+        if (name) {
             fetch(`/api/customer/?name=${encodeURIComponent(name)}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.found) {
-                        // Подтягиваем данные, если они пустые или мы хотим перезаписать
                         document.getElementById('id_customer_phone').value = data.phone;
                         document.getElementById('id_customer_email').value = data.email;
                         document.getElementById('id_customer_city').value = data.city;
@@ -94,13 +87,42 @@ document.addEventListener('DOMContentLoaded', function() {
                         document.getElementById('id_customer_district').value = data.district;
                         document.getElementById('id_customer_house').value = data.house;
 
-                        alertBox.classList.remove('d-none');
+                        // Можно добавить визуальную индикацию, что данные загружены
+                        nameField.classList.add('is-valid');
                     } else {
-                        alertBox.classList.add('d-none');
+                        nameField.classList.remove('is-valid');
                     }
                 })
-                .catch(error => console.error('Error fetching customer:', error));
-        }, 500); // Ждем 500мс после ввода последнего символа
+                .catch(error => console.error('Ошибка:', error));
+        }
+    });
+
+    // Formset logic
+    const container = document.getElementById('formset-container');
+    const addButton = document.getElementById('add-form');
+    const totalForms = document.getElementById('id_items-TOTAL_FORMS');
+
+    addButton.addEventListener('click', function() {
+        const currentFormCount = parseInt(totalForms.value);
+
+        // Find the first form row to clone
+        const rowToClone = container.querySelector('.formset-row');
+        const newRow = rowToClone.cloneNode(true);
+
+        // Update all attributes/id/names in the cloned row
+        const regex = new RegExp(`items-\\d+-`, 'g');
+        newRow.innerHTML = newRow.innerHTML.replace(regex, `items-${currentFormCount}-`);
+
+        // Clear input values in the cloned row
+        const inputs = newRow.querySelectorAll('input:not([type="hidden"])');
+        inputs.forEach(input => input.value = '');
+
+        // Uncheck delete checkbox if present
+        const checkboxes = newRow.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(checkbox => checkbox.checked = false);
+
+        container.appendChild(newRow);
+        totalForms.value = currentFormCount + 1;
     });
 });
 </script>

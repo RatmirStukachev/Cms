@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.core.mail import EmailMessage
-from .models import Customer, Order
-from .forms import OrderForm, CustomerForm, BroadcastForm
+from .models import Customer, Order, OrderItem
+from .forms import OrderForm, CustomerForm, BroadcastForm, OrderItemFormSet
 
 @login_required
 def dashboard(request):
@@ -18,7 +18,7 @@ def order_list(request):
     customer_filter = request.GET.get('customer')
 
     if product_filter:
-        orders = orders.filter(product__icontains=product_filter)
+        orders = orders.filter(items__name__icontains=product_filter).distinct()
     if customer_filter:
         orders = orders.filter(customer__name__icontains=customer_filter)
 
@@ -28,8 +28,8 @@ def order_list(request):
 def order_create(request):
     if request.method == 'POST':
         form = OrderForm(request.POST)
-        if form.is_valid():
-            # Извлекаем данные клиента
+        formset = OrderItemFormSet(request.POST)
+        if form.is_valid() and formset.is_valid():
             name = form.cleaned_data['customer_name']
             phone = form.cleaned_data['customer_phone']
             email = form.cleaned_data['customer_email']
@@ -38,7 +38,6 @@ def order_create(request):
             district = form.cleaned_data['customer_district']
             house = form.cleaned_data['customer_house']
 
-            # Получаем или создаем клиента
             customer, created = Customer.objects.get_or_create(
                 name=name,
                 defaults={
@@ -51,29 +50,44 @@ def order_create(request):
                 }
             )
 
-            # Создаем заказ
             order = form.save(commit=False)
             order.customer = customer
             order.save()
+
+            formset.instance = order
+            formset.save()
 
             messages.success(request, 'Заказ успешно создан!')
             return redirect('order_list')
     else:
         form = OrderForm()
+        formset = OrderItemFormSet()
 
-    return render(request, 'store_crm/order_form.html', {'form': form, 'title': 'Добавить заказ'})
+    return render(request, 'store_crm/order_form.html', {'form': form, 'formset': formset, 'title': 'Добавить заказ'})
 
 @login_required
 def order_edit(request, pk):
     order = get_object_or_404(Order, pk=pk)
     if request.method == 'POST':
-        # В режиме редактирования, для простоты, редактируем только продукт.
-        # Если нужно менять клиента, лучше делать это через профиль клиента.
-        order.product = request.POST.get('product', order.product)
-        order.save()
-        messages.success(request, 'Заказ успешно обновлен!')
-        return redirect('order_list')
-    return render(request, 'store_crm/order_edit.html', {'order': order})
+        form = OrderForm(request.POST, instance=order)
+        formset = OrderItemFormSet(request.POST, instance=order)
+        if form.is_valid() and formset.is_valid():
+            form.save()
+            formset.save()
+            messages.success(request, 'Заказ успешно обновлен!')
+            return redirect('order_list')
+    else:
+        form = OrderForm(instance=order, initial={
+            'customer_name': order.customer.name,
+            'customer_phone': order.customer.phone,
+            'customer_email': order.customer.email,
+            'customer_city': order.customer.city,
+            'customer_street': order.customer.street,
+            'customer_district': order.customer.district,
+            'customer_house': order.customer.house,
+        })
+        formset = OrderItemFormSet(instance=order)
+    return render(request, 'store_crm/order_edit.html', {'form': form, 'formset': formset, 'order': order})
 
 @login_required
 def order_delete(request, pk):
@@ -128,7 +142,7 @@ def broadcast(request):
     product_filter = request.GET.get('product')
     if product_filter:
         # Фильтруем клиентов, у которых есть заказы с данным товаром
-        customers = customers.filter(orders__product__icontains=product_filter).distinct()
+        customers = customers.filter(orders__items__name__icontains=product_filter).distinct()
 
     if request.method == 'POST':
         selected_customer_ids = request.POST.getlist('customers')

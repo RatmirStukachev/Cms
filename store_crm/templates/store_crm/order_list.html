@@ -45,7 +45,8 @@
                 <th>Дата</th>
                 <th>Клиент</th>
                 <th>Телефон</th>
-                <th>Товар</th>
+                <th>Товары</th>
+                <th>Стоимость</th>
                 <th>Действия</th>
             </tr>
         </thead>
@@ -60,7 +61,14 @@
                     </a>
                 </td>
                 <td>{{ order.customer.phone }}</td>
-                <td>{{ order.product }}</td>
+                <td>
+                    <ul class="list-unstyled mb-0">
+                        {% for item in order.items.all %}
+                        <li>{{ item.name }}</li>
+                        {% endfor %}
+                    </ul>
+                </td>
+                <td>{{ order.total_cost }}</td>
                 <td>
                     <a href="{% url 'order_edit' order.id %}" class="btn btn-sm btn-outline-primary">✎</a>
                     <a href="{% url 'order_delete' order.id %}" class="btn btn-sm btn-outline-danger">✖</a>

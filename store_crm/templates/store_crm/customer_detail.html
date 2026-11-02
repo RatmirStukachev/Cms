@@ -46,7 +46,8 @@
                         <tr>
                             <th>ID</th>
                             <th>Дата</th>
-                            <th>Товар</th>
+                            <th>Товары</th>
+                            <th>Стоимость</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -54,7 +55,14 @@
                         <tr>
                             <td>#{{ order.id }}</td>
                             <td>{{ order.created_at|date:"d.m.Y H:i" }}</td>
-                            <td>{{ order.product }}</td>
+                            <td>
+                                <ul class="list-unstyled mb-0">
+                                    {% for item in order.items.all %}
+                                    <li>{{ item.name }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td>{{ order.total_cost }}</td>
                         </tr>
                         {% empty %}
                         <tr>
