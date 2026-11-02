@@ -158,7 +158,7 @@ def broadcast(request):
                 email = EmailMessage(
                     subject,
                     message,
-                    'from@example.com', # Заменить на реальный отправитель
+                    None, # None будет использовать DEFAULT_FROM_EMAIL или переопределится SMTP сервером
                     [], # кому (пусто, чтобы не видели друг друга)
                     bcc=emails, # скрытая копия
                 )
