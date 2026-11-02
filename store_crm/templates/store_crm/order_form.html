@@ -34,8 +34,9 @@
                     <div id="formset-container">
                         {% for item_form in formset %}
                             <div class="formset-row mb-3 d-flex align-items-center">
-                                <div class="flex-grow-1 me-2">
-                                    {{ item_form.name|as_crispy_field }}
+                                <div class="flex-grow-1 me-2 row">
+                                    <div class="col-8">{{ item_form.name|as_crispy_field }}</div>
+                                    <div class="col-4">{{ item_form.price|as_crispy_field }}</div>
                                 </div>
                                 {% if formset.can_delete %}
                                     <div class="mt-3">
@@ -94,6 +95,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 })
                 .catch(error => console.error('Ошибка:', error));
+        }
+    });
+
+    // Total cost calculation
+    function calculateTotal() {
+        const priceInputs = document.querySelectorAll('.price-input');
+        let total = 0;
+        priceInputs.forEach(input => {
+            const val = parseFloat(input.value);
+            if (!isNaN(val)) {
+                total += val;
+            }
+        });
+        document.getElementById('id_total_cost').value = total.toFixed(2);
+    }
+
+    // Bind event listeners to existing and future price inputs
+    document.getElementById('formset-container').addEventListener('input', function(e) {
+        if (e.target.classList.contains('price-input')) {
+            calculateTotal();
         }
     });
 

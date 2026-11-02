@@ -43,9 +43,10 @@ from .models import OrderItem
 class OrderItemForm(forms.ModelForm):
     class Meta:
         model = OrderItem
-        fields = ['name']
+        fields = ['name', 'price']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Название товара'})
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Название товара'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control price-input', 'placeholder': 'Цена'})
         }
 
 OrderItemFormSet = inlineformset_factory(

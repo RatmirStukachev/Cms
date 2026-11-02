@@ -12,14 +12,21 @@
                 <form method="post" id="order-form">
                     {% csrf_token %}
 
-                    <h5 class="mb-3 border-bottom pb-2">Данные клиента (не редактируются отсюда)</h5>
-                    <p><strong>Имя:</strong> {{ order.customer.name }}</p>
-                    <p><strong>Телефон:</strong> {{ order.customer.phone }}</p>
-
-                    <div style="display:none;">
-                        <!-- Hidden required fields -->
-                        {{ form.customer_name }}
-                        {{ form.customer_phone }}
+                    <h5 class="mb-3 border-bottom pb-2">Данные клиента</h5>
+                    <div class="row">
+                        <div class="col-md-6">{{ form.customer_name|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.customer_phone|as_crispy_field }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">{{ form.customer_email|as_crispy_field }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">{{ form.customer_city|as_crispy_field }}</div>
+                        <div class="col-md-6">{{ form.customer_district|as_crispy_field }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-8">{{ form.customer_street|as_crispy_field }}</div>
+                        <div class="col-md-4">{{ form.customer_house|as_crispy_field }}</div>
                     </div>
 
                     <h5 class="mb-3 mt-4 border-bottom pb-2">Товары</h5>
@@ -27,8 +34,9 @@
                     <div id="formset-container">
                         {% for item_form in formset %}
                             <div class="formset-row mb-3 d-flex align-items-center">
-                                <div class="flex-grow-1 me-2">
-                                    {{ item_form.name|as_crispy_field }}
+                                <div class="flex-grow-1 me-2 row">
+                                    <div class="col-8">{{ item_form.name|as_crispy_field }}</div>
+                                    <div class="col-4">{{ item_form.price|as_crispy_field }}</div>
                                 </div>
                                 {% if formset.can_delete %}
                                     <div class="mt-3">
@@ -64,6 +72,53 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const nameField = document.getElementById('id_customer_name');
+
+    nameField.addEventListener('blur', function() {
+        const name = this.value.trim();
+        if (name) {
+            fetch(`/api/customer/?name=${encodeURIComponent(name)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.found) {
+                        document.getElementById('id_customer_phone').value = data.phone;
+                        document.getElementById('id_customer_email').value = data.email;
+                        document.getElementById('id_customer_city').value = data.city;
+                        document.getElementById('id_customer_street').value = data.street;
+                        document.getElementById('id_customer_district').value = data.district;
+                        document.getElementById('id_customer_house').value = data.house;
+
+                        // Можно добавить визуальную индикацию, что данные загружены
+                        nameField.classList.add('is-valid');
+                    } else {
+                        nameField.classList.remove('is-valid');
+                    }
+                })
+                .catch(error => console.error('Ошибка:', error));
+        }
+    });
+
+    // Total cost calculation
+    function calculateTotal() {
+        const priceInputs = document.querySelectorAll('.price-input');
+        let total = 0;
+        priceInputs.forEach(input => {
+            const val = parseFloat(input.value);
+            if (!isNaN(val)) {
+                total += val;
+            }
+        });
+        document.getElementById('id_total_cost').value = total.toFixed(2);
+    }
+
+    // Bind event listeners to existing and future price inputs
+    document.getElementById('formset-container').addEventListener('input', function(e) {
+        if (e.target.classList.contains('price-input')) {
+            calculateTotal();
+        }
+    });
+
+    // Formset logic
     const container = document.getElementById('formset-container');
     const addButton = document.getElementById('add-form');
     const totalForms = document.getElementById('id_items-TOTAL_FORMS');
@@ -71,15 +126,19 @@ document.addEventListener('DOMContentLoaded', function() {
     addButton.addEventListener('click', function() {
         const currentFormCount = parseInt(totalForms.value);
 
+        // Find the first form row to clone
         const rowToClone = container.querySelector('.formset-row');
         const newRow = rowToClone.cloneNode(true);
 
+        // Update all attributes/id/names in the cloned row
         const regex = new RegExp(`items-\\d+-`, 'g');
         newRow.innerHTML = newRow.innerHTML.replace(regex, `items-${currentFormCount}-`);
 
+        // Clear input values in the cloned row
         const inputs = newRow.querySelectorAll('input:not([type="hidden"])');
         inputs.forEach(input => input.value = '');
 
+        // Uncheck delete checkbox if present
         const checkboxes = newRow.querySelectorAll('input[type="checkbox"]');
         checkboxes.forEach(checkbox => checkbox.checked = false);
 
