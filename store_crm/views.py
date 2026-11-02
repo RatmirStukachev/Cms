@@ -72,6 +72,17 @@ def order_edit(request, pk):
         form = OrderForm(request.POST, instance=order)
         formset = OrderItemFormSet(request.POST, instance=order)
         if form.is_valid() and formset.is_valid():
+            # Обновляем профиль клиента
+            customer = order.customer
+            customer.name = form.cleaned_data['customer_name']
+            customer.phone = form.cleaned_data['customer_phone']
+            customer.email = form.cleaned_data['customer_email']
+            customer.city = form.cleaned_data['customer_city']
+            customer.street = form.cleaned_data['customer_street']
+            customer.district = form.cleaned_data['customer_district']
+            customer.house = form.cleaned_data['customer_house']
+            customer.save()
+
             form.save()
             formset.save()
             messages.success(request, 'Заказ успешно обновлен!')
